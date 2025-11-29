@@ -16,20 +16,23 @@ Here is an example a project organized as:
 would have a package.cpp as following
 
 ```cpp
-#include <Models/BasicProject.hpp>
-#include <Models/BasicTarget.hpp>
+#include "Models/TargetDescriptor.hpp"
+#include <Models/ProjectDescriptor.hpp>
 
-auto descriptor = Models::BasicTargetFactory::create()
-                      .name("example-executable")
-                      .version("1.0.0")
-                      .type("executable")
-                      .sources({"src/main.cpp", "src/source0.cpp",
-                                "src/source1.cpp", "src/source2.cpp"})
-                      .sources({"src/source3.cpp"})
-                      .build();
+ auto example = Models::TargetDescriptor()
+                       .name_set("example-executable")
+                       .version_set("1.0.0")
+                       .type_set("executable")
+                       .sources_append({"src/main.cpp", "src/source0.cpp",
+                                 "src/source1.cpp", "src/source2.cpp"})
+                       .sources_append({"src/source3.cpp"})
+                       .options_append({"-fPIE", "-fstack-protector-all"})
+                       .link_libraries_append({"m"})
+                       .create();
 
-// Models::BasicProject project = {.targets = {descriptor}};
-auto project = Models::BasicProjectFactory::create().add(descriptor).build();
+auto project = Models::ProjectDescriptor()
+                        .add(example)
+                        .create();
 ```
 
 In my perspective, to make this work, the cpkg-build application would be responsible of creating the stubs to generate a shared-library, that would plug in the build system and compile the files.
