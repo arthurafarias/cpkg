@@ -27,13 +27,15 @@ public:
 
   virtual String object_build(const String &source,
                               const BasicTargetDescriptor &target) override {
-    Core::Logging::LoggerManager::info("building {}: started", source);
+    Core::Logging::LoggerManager::info("building {}: started", source.c_str());
 
     Collection<String> command;
 
     command.push_back(compiler_executable);
 
     command.append_range(target.options);
+
+    command.push_back("-fPIC");
 
     auto include_directories_arguments =
         target.include_directories.transform<Collection<String>>(
@@ -71,9 +73,12 @@ public:
     command.append_range(
         Collection<String>({object_specifier_prefix, source + ".o"}));
 
+    auto command_line = String::join(command, " ");
+
+    Core::Logging::LoggerManager::debug("Calling: {}", command_line.c_str());
     auto [result_code, out, err] =
-        Utils::Unix::ShellManager::exec(String::join(command, ""));
-    Core::Logging::LoggerManager::info("building {}: ended", source);
+        Utils::Unix::ShellManager::exec(command_line);
+    Core::Logging::LoggerManager::info("building {}: ended", source.c_str());
 
     return out;
   }
@@ -85,7 +90,59 @@ public:
   }
 
   virtual String executable_link(const BasicTargetDescriptor &target) override {
-    return "";
+
+    Collection<String> command;
+
+    command.push_back(compiler_executable);
+
+    command.append_range(target.options);
+
+    command.push_back("-fPIE");
+
+    auto include_directories_arguments =
+        target.include_directories.transform<Collection<String>>(
+            [this](const auto &el) {
+              return Collection<String>{include_directory_prefix, el};
+            });
+
+    for (auto include_directory_argument : include_directories_arguments) {
+      command.append_range(include_directory_argument);
+    }
+
+    auto link_directories_arguments =
+        target.link_directories.transform<Collection<String>>(
+            [this](const auto &el) {
+              return Collection<String>{include_directory_prefix, el};
+            });
+
+    for (auto link_directory_argument : link_directories_arguments) {
+      command.append_range(link_directory_argument);
+    }
+
+    auto link_libraries_arguments =
+        target.link_libraries.transform<Collection<String>>(
+            [this](const auto &el) {
+              return Collection<String>{include_directory_prefix, el};
+            });
+
+    for (auto link_library_argument : link_libraries_arguments) {
+      command.append_range(link_library_argument);
+    }
+
+    command.append_range(Collection<String>{"-o", target.name});
+
+    for (auto source : target.sources) {
+      command.push_back(source + ".o");
+    }
+
+    auto command_line = String::join(command, " ");
+
+    Core::Logging::LoggerManager::debug("Calling: {}", command_line.c_str());
+    auto [result_code, out, err] =
+        Utils::Unix::ShellManager::exec(command_line);
+    Core::Logging::LoggerManager::info("building: ended");
+
+    return out;
   }
 
   virtual ToolchainBasicCommandInterface::promise_type
@@ -95,7 +152,62 @@ public:
 
   virtual String
   shared_object_link(const BasicTargetDescriptor &target) override {
-    return "";
+
+    Collection<String> command;
+
+    command.push_back(compiler_executable);
+
+    command.push_back("-fPIC");
+    command.push_back("-shared");
+
+    command.append_range(this->linker_options);
+
+    command.append_range(target.options);
+
+    auto include_directories_arguments =
+        target.include_directories.transform<Collection<String>>(
+            [this](const auto &el) {
+              return Collection<String>{include_directory_prefix, el};
+            });
+
+    for (auto include_directory_argument : include_directories_arguments) {
+      command.append_range(include_directory_argument);
+    }
+
+    auto link_directories_arguments =
+        target.link_directories.transform<Collection<String>>(
+            [this](const auto &el) {
+              return Collection<String>{include_directory_prefix, el};
+            });
+
+    for (auto link_directory_argument : link_directories_arguments) {
+      command.append_range(link_directory_argument);
+    }
+
+    auto link_libraries_arguments =
+        target.link_libraries.transform<Collection<String>>(
+            [this](const auto &el) {
+              return Collection<String>{include_directory_prefix, el};
+            });
+
+    for (auto link_library_argument : link_libraries_arguments) {
+      command.append_range(link_library_argument);
+    }
+
+    command.append_range(Collection<String>{"-o", target.name + ".so"});
+
+    for (auto source : target.sources) {
+      command.push_back(source + ".o");
+    }
+
+    auto command_line = String::join(command, " ");
+
+    Core::Logging::LoggerManager::debug("Calling: {}", command_line.c_str());
+    auto [result_code, out, err] =
+        Utils::Unix::ShellManager::exec(command_line);
+    Core::Logging::LoggerManager::info("building: ended");
+
+    return out;
   }
 
   virtual ToolchainBasicCommandInterface::promise_type

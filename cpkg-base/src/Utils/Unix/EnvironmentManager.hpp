@@ -59,7 +59,7 @@ public:
 
       using directory_iterator = std::filesystem::recursive_directory_iterator;
 
-      for (auto file : directory_iterator(folder.std_string())) {
+      for (auto file : directory_iterator(folder.c_str())) {
 
         if (file.path().filename() == filename) {
           return file.path().string();

@@ -1,10 +1,14 @@
 #pragma once
 
-#include "Controllers/Project.hpp"
 #include "Core/Containers/Collection.hpp"
 #include "Core/Exceptions/RuntimeException.hpp"
 #include "Models/BasicProjectDescriptor.hpp"
+#include <Controllers/ToolchainManager.hpp>
+#include "Models/ProjectDescriptor.hpp"
 #include <Core/Containers/String.hpp>
+#include <dlfcn.h>
+
+#include <fstream>
 
 // configs
 #ifndef CPKG_BUILD_HEADERS_PATH
@@ -31,36 +35,46 @@ struct ProjectManager {
   build_manifest(const Core::Containers::String &project_path,
                  Core::Containers::Collection<Core::Containers::String>
                      extra_toolchain_search_paths) {
+
+    if (__generate_loader(project_path) != 0) {
+      return -1;
+    }
+
+    if (Controllers::ToolchainManager::current().build(ManifestPackage) != 0) {
+      return -1;
+    }
+
     return 0;
   }
 
   static inline Models::BasicProjectDescriptor
   load_from_manifest(const Core::Containers::String &manifest_path) {
-    typedef ProjectDescriptor *(*getter_type)();
+    
+    typedef Models::ProjectDescriptor *(*getter_type)();
 
     void *handle = dlopen("./project-manifest.so", RTLD_LAZY | RTLD_DEEPBIND);
 
     if (handle == nullptr) {
       throw Core::Exceptions::RuntimeException(
-          "Couldn't load manifest at path {}: not found!", manifest_path);
+          "Couldn't load manifest at path {}: not found!",
+          manifest_path.c_str());
     }
 
     auto get_project =
         reinterpret_cast<getter_type>(dlsym(handle, "get_project"));
 
     if (get_project == nullptr) {
+      dlclose(handle);
       throw Core::Exceptions::RuntimeException(
           "Couldn't load manifest at path {}: malformed get_project method",
           manifest_path);
     }
 
-    auto _retval = *get_project();
-
-    auto retval = std::make_shared<ProjectDescriptor>(_retval);
+    auto retval = *get_project();
 
     dlclose(handle);
 
-    return *retval;
+    return retval;
   }
 
   static inline int clean(const Core::Containers::String &project_path,
@@ -70,7 +84,7 @@ struct ProjectManager {
     // objects
     for (auto source : ManifestPackage.sources) {
       std::filesystem::remove_all(std::filesystem::path(project_path.c_str())
-                                      .append(source.std_string())
+                                      .append(source.c_str())
                                       .append(".o"));
     }
 
@@ -107,5 +121,13 @@ private:
     // should be a weak reference that can be overriten by a custom get_project // more versatile but unsafe.
     extern "C" const BasicProjectDescriptor* get_project()  { return &project; }
   )";
+
+  static int __generate_loader(std::string base_path) {
+    std::ofstream loader_source(base_path + "/package.loader.cpp",
+                                std::ios_base::trunc | std::ios_base::out);
+    loader_source << BasicProjectLoaderSource;
+    loader_source.flush();
+    return 0;
+  }
 };
 } // namespace Controllers

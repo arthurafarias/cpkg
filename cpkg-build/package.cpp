@@ -1,10 +1,10 @@
-#include <Models/BasicTarget.hpp>
+#include <Models/TargetDescriptor.hpp>
 
-Models::BasicTarget cpkg_build_target = {
-    .name = "cpkg-build",
-    .version = "1.0.0",
-    .type = "executable",
-    .dependencies = {"cpkg-base"},
-    .include_directories = {"src"},
-    .sources = {"src/cpkg-build.cpp"},
-};
+auto cpkg_build_target = Models::TargetDescriptor()
+    .name_set("cpkg-build")
+    .version_set("1.0.0")
+    .type_set("executable")
+    .dependencies_append({"cpkg-base"})
+    .include_directories_append({"src"})
+    .sources_append({"src/cpkg-build.cpp"})
+    .create();

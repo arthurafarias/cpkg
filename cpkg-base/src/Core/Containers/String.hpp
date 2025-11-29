@@ -10,17 +10,15 @@
 namespace Core::Containers {
 
 class String : public std::string {
-public:
+
+  public:
+  using std::string::string;
+
+  String(const std::string& other) : std::string(other) {}
 
   template<typename ...ArgumentTypes>
   String(const ArgumentTypes&&... args) : std::string(std::forward<const ArgumentTypes>(args)...) {}
 
-
-  String(const std::string& other) : std::string(other) {}
-
-  using std::string::string;
-
-  const std::string &std_string() { return *this; }
 
   inline static String join(const Collection<String> &collection,
                             String delimiter) {

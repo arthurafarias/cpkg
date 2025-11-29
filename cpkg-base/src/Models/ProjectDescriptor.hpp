@@ -15,5 +15,7 @@ public:
     toolchains.push_back(toolchain);
     return *this;
   }
+
+  constexpr auto &create() { return *this; }
 };
 } // namespace Models

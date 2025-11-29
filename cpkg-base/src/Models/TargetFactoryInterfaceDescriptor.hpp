@@ -5,54 +5,69 @@
 using namespace Core::Containers;
 namespace Models {
 
-template <typename DerivedType> class TargetDescriptorFactoryInterface {
+template <typename DerivedType>
+class TargetDescriptorInterface : public BasicTargetDescriptor {
 public:
-  constexpr DerivedType &name(const Core::Containers::String &name) {
-    this->target.name = name;
+  using BasicTargetDescriptor::BasicTargetDescriptor;
+  constexpr TargetDescriptorInterface<DerivedType> &
+  name_set(const Core::Containers::String &name) {
+    this->name = name;
     return *this;
   }
-  constexpr DerivedType &version(const Core::Containers::String &version) {
-    this->target.version = version;
-    return *this;
-  }
-
-  constexpr DerivedType &language(const Core::Containers::String &language) {
-    this->target.language = language;
-    return *this;
-  }
-  constexpr DerivedType &type(const Core::Containers::String &type) {
-    this->target.type = type;
-    return *this;
-  }
-  constexpr DerivedType &dependencies(const auto &dependencies) {
-    this->target.dependencies.append_range(dependencies);
-    return *this;
-  }
-  constexpr DerivedType &options(const auto &options) {
-    this->target.options.append_range(options);
+  constexpr TargetDescriptorInterface<DerivedType> &
+  version_set(const Core::Containers::String &version) {
+    this->version = version;
     return *this;
   }
 
-  constexpr DerivedType &sources(const auto &sources) {
-    this->target.sources.append_range(sources);
+  constexpr TargetDescriptorInterface<DerivedType> &
+  language_set(const Core::Containers::String &language) {
+    this->language = language;
+    return *this;
+  }
+  constexpr TargetDescriptorInterface<DerivedType> &
+  type_set(const Core::Containers::String &type) {
+    this->type = type;
+    return *this;
+  }
+  constexpr TargetDescriptorInterface<DerivedType> &
+  dependencies_append(const Collection<String> &dependencies) {
+    this->dependencies.append_range(dependencies);
+    return *this;
+  }
+  constexpr TargetDescriptorInterface<DerivedType> &
+  options_append(const Collection<String> &options) {
+    this->options.append_range(options);
+    return *this;
+  }
+  
+  constexpr TargetDescriptorInterface<DerivedType> &
+  link_directories_append(const Collection<String> &paths) {
+    this->link_directories.append_range(paths);
     return *this;
   }
 
-  /** this will be removed! not necessary if dependency is correctly configured
-   * under the build system */
-  constexpr DerivedType &
-  link_libraries(const auto &link_libraries) {
-    this->target.link_libraries.append_range(link_libraries);
+  constexpr TargetDescriptorInterface<DerivedType> &
+  link_libraries_append(const Collection<String> &link_libraries) {
+    this->link_libraries.append_range(link_libraries);
     return *this;
   }
-  constexpr DerivedType &
-  link_directories(const auto &link_directories) {
-    this->target.link_directories.append_range(link_directories);
-    return *this;
-  }
-  constexpr const BasicTargetDescriptor &create() { return target; }
 
-private:
-  BasicTargetDescriptor target;
+
+  constexpr TargetDescriptorInterface<DerivedType> &
+  include_directories_append(const Collection<String> &paths) {
+    this->include_directories.append_range(paths);
+    return *this;
+  }
+
+  constexpr TargetDescriptorInterface<DerivedType> &
+  sources_append(const Collection<String> &sources) {
+    this->sources.append_range(sources);
+    return *this;
+  }
+  
+  constexpr const DerivedType &create() {
+    return static_cast<DerivedType&>(*this);
+  }
 };
 } // namespace Models

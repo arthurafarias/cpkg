@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Logging/LoggerManager.hpp"
 #include "Models/BasicTargetDescriptor.hpp"
 #include "Models/BasicToolchainDescriptor.hpp"
 
@@ -31,13 +32,13 @@ public:
     }
 
     for (auto directory : toolchain.link_directories) {
-      if (!std::filesystem::exists(directory.std_string())) {
+      if (!std::filesystem::exists(directory.c_str())) {
         return false;
       }
     }
 
     for (auto directory : toolchain.include_directories) {
-      if (!std::filesystem::exists(directory.std_string())) {
+      if (!std::filesystem::exists(directory.c_str())) {
         return false;
       }
     }
@@ -112,16 +113,16 @@ public:
     for (auto path : search_paths) {
       using recursive_directory_iterator =
           std::filesystem::recursive_directory_iterator;
-      if (!std::filesystem::exists(path.std_string()) ||
-          !std::filesystem::is_directory(path.std_string())) {
+      if (!std::filesystem::exists(path.c_str()) ||
+          !std::filesystem::is_directory(path.c_str())) {
         continue;
       }
-      for (auto plugin : recursive_directory_iterator(path.std_string())) {
+      for (auto plugin : recursive_directory_iterator(path.c_str())) {
         auto filename = std::filesystem::path(plugin).filename();
 
         if (filename.string().ends_with(".so")) {
 
-          typedef BasicToolchainDescriptor *(*getter_type)();
+          typedef Toolchain *(*getter_type)();
 
           void *handle = dlopen(std::filesystem::path(plugin).c_str(),
                                 RTLD_LAZY | RTLD_DEEPBIND);
@@ -141,7 +142,7 @@ public:
             }
 
           } catch (std::exception &ex) {
-            // ignore and move out
+            Core::Logging::LoggerManager::error("{}", ex.what());
           }
 
           if (handle != nullptr) {

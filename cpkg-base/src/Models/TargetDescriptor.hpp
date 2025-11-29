@@ -4,9 +4,7 @@
 #include <Models/BasicTargetDescriptor.hpp>
 
 namespace Models {
-struct TargetDescriptor
-    : public BasicTargetDescriptor,
-      public TargetDescriptorFactoryInterface<TargetDescriptor> {
-  using BasicTargetDescriptor::BasicTargetDescriptor;
+struct TargetDescriptor : public TargetDescriptorInterface<TargetDescriptor> {
+  using TargetDescriptorInterface<TargetDescriptor>::TargetDescriptorInterface;
 };
 } // namespace Models
