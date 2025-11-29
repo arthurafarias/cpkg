@@ -1,15 +1,17 @@
-#include <Controllers/Toolchain.hpp>
-#include <Models/BasicToolchain.hpp>
+#include <Models/ToolchainDescriptor.hpp>
 
 using namespace Models;
 
-auto toolchain = BasicToolchainFactory::instance()
-                     .name("gcc")
-                     .version("generic")
-                     .language("c")
-                     .compiler_executable("/usr/bin/gcc")
-                     .linker_executable("/usr/bin/gcc")
-                     .compiler_options({"-pthread"})
-                     .build();
+auto toolchain = Toolchain()
+                     .name_set("gcc")
+                     .version_set("generic")
+                     .include_directory_prefix_set("-I")
+                     .link_directory_prefix_set("-L")
+                     .link_library_prefix_set("-l")
+                     .compiler_executable_set("/usr/bin/gcc")
+                     .linker_executable_set("/usr/bin/gcc")
+                     .language_set("c")
+                     .compiler_options_set({"-pthread"})
+                     .create();
 
-extern "C" ToolchainDescriptor *get_toolchain() { return &toolchain; }
+extern "C" Toolchain *get_toolchain() { return &toolchain; }

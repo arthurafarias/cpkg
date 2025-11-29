@@ -1,16 +1,14 @@
 #pragma once
 
+#include "Models/BasicProjectDescriptor.hpp"
+#include "Models/BasicTargetDescriptor.hpp"
 #include <Controllers/Project.hpp>
-#include <Controllers/Toolchain.hpp>
-
+#include <Controllers/ToolchainManager.hpp>
 #include <Core/Containers/Variant.hpp>
-
-#include <Models/BasicProject.hpp>
-#include <Models/BasicTarget.hpp>
-
 #include <Utils/Print.hpp>
 
 #include <deque>
+#include <dlfcn.h>
 #include <fstream>
 #include <memory>
 #include <ostream>
@@ -35,7 +33,9 @@ using namespace Core::Containers;
 
 namespace Controllers {
 
-inline BasicTarget ManifestPackage = {
+using namespace Models;
+
+inline BasicTargetDescriptor ManifestPackage = {
     .name = "project-manifest",
     .type = "shared-library",
     .dependencies = {"cpkg-base"},
@@ -46,26 +46,27 @@ inline BasicTarget ManifestPackage = {
     .options = {"-std=c++23", "-Wall", "-Werror", "-pedantic"}};
 
 inline const std::string BasicProjectLoaderSource = R"(
-#include <Models/BasicProject.hpp>
+#include <Models/BasicProjectDescriptor.hpp>
 
 using namespace Models;
 
-extern BasicProject project;
+extern BasicProjectDescriptor project;
 
-extern "C" const BasicProject* get_project()  { return &project; }
+extern "C" const BasicProjectDescriptor* get_project()  { return &project; }
 )";
 
-struct Project : public BasicProject {
+struct ProjectDescriptor : public BasicProjectDescriptor {
 public:
-  Project(const BasicProject &other) : BasicProject(other) {}
-  Project(const Project &) = default;
-  Project(Project &&) = default;
-  Project &operator=(const Project &) = delete;
-  Project &operator=(Project &&) = delete;
+  ProjectDescriptor(const BasicProjectDescriptor &other)
+      : BasicProjectDescriptor(other) {}
+  ProjectDescriptor(const ProjectDescriptor &) = default;
+  ProjectDescriptor(ProjectDescriptor &&) = default;
+  ProjectDescriptor &operator=(const ProjectDescriptor &) = delete;
+  ProjectDescriptor &operator=(ProjectDescriptor &&) = delete;
 
-  static const std::shared_ptr<Project>
+  static const std::shared_ptr<ProjectDescriptor>
   load_from_manifest(std::string manifest_path) {
-    typedef Project *(*getter_type)();
+    typedef ProjectDescriptor *(*getter_type)();
 
     void *handle = dlopen("./project-manifest.so", RTLD_LAZY | RTLD_DEEPBIND);
 
@@ -82,7 +83,7 @@ public:
 
     auto _retval = *get_project();
 
-    auto retval = std::make_shared<Project>(_retval);
+    auto retval = std::make_shared<ProjectDescriptor>(_retval);
 
     dlclose(handle);
 
@@ -92,10 +93,9 @@ public:
   static int clean(std::string path, std::deque<std::string> extra_paths = {}) {
 
     // objects
-    for (auto _src : ManifestPackage.sources) {
-      std::string src = std::get<Core::Containers::String>(_src);
+    for (auto source : ManifestPackage.sources) {
       std::filesystem::remove_all(
-          std::filesystem::path(path).append(src).append(".o"));
+          std::filesystem::path(path).append(source.std_string()).append(".o"));
     }
 
     // generate packages
@@ -118,7 +118,7 @@ public:
       return -1;
     }
 
-    if (ToolchainManager::current()->build(ManifestPackage) != 0) {
+    if (Controllers::ToolchainManager::current().build(ManifestPackage) != 0) {
       return -1;
     }
 
@@ -140,7 +140,8 @@ private:
 namespace Utils {
 using namespace Controllers;
 template <>
-inline std::ostream &print<Project>(std::ostream &os, Project project) {
+inline std::ostream &print<ProjectDescriptor>(std::ostream &os,
+                                              ProjectDescriptor project) {
   print(os, "{");
 
   for (auto pkg : project.targets) {

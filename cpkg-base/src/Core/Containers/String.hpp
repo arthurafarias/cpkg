@@ -1,26 +1,42 @@
 #pragma once
 
+#include "Core/Containers/Collection.hpp"
 #include <deque>
+#include <filesystem>
+#include <iterator>
 #include <string>
 #include <utility>
 
 namespace Core::Containers {
 
-class String : public std::basic_string<char> {
+class String : public std::string {
 public:
-  template <typename... ArgsTypes>
-  String(ArgsTypes... args)
-      : std::basic_string<char>(std::forward<ArgsTypes>(args)...) {}
-  using std::basic_string<char>::basic_string;
 
-  // operator const std::string&()
-  // {
-  //   return *this;
-  // }
+  template<typename ...ArgumentTypes>
+  String(const ArgumentTypes&&... args) : std::string(std::forward<const ArgumentTypes>(args)...) {}
+
+
+  String(const std::string& other) : std::string(other) {}
+
+  using std::string::string;
+
+  const std::string &std_string() { return *this; }
+
+  inline static String join(const Collection<String> &collection,
+                            String delimiter) {
+
+    String result = collection.front();
+
+    for (auto el = collection.begin() + 1; el < collection.end(); el++) {
+      result += delimiter + *el;
+    }
+
+    return result;
+  }
 };
 
-inline std::deque<String> split(String haystack, String needle) {
-  std::deque<String> splitted;
+inline Collection<String> split(String haystack, String needle) {
+  Collection<String> splitted;
   int position = 0;
   int position_last = 0;
 

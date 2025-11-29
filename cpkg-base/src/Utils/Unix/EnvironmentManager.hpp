@@ -3,7 +3,11 @@
 #include <cstring>
 #include <deque>
 #include <filesystem>
-#include <string>
+
+#include <Core/Containers/Collection.hpp>
+#include <Core/Containers/String.hpp>
+
+using namespace Core::Containers;
 
 namespace Utils::Unix {
 
@@ -18,8 +22,9 @@ private:
   EnvironmentManager &operator=(const EnvironmentManager &&) = delete;
 
 public:
-  static inline std::deque<std::string> get(const char *__str) {
-    std::deque<std::string> result;
+  static inline Core::Containers::Collection<Core::Containers::String>
+  get(const char *__str) {
+    Core::Containers::Collection<Core::Containers::String> result;
     const auto &__env = getenv(__str);
     auto _result = strdup(__env);
     auto _ptr = _result;
@@ -36,9 +41,9 @@ public:
     return result;
   }
 
-  inline static const std::string which(const char *filename) {
+  inline static const Core::Containers::String which(const char *filename) {
 
-    auto folders = std::deque<std::string>();
+    auto folders = Core::Containers::Collection<Core::Containers::String>();
     folders.append_range(Utils::Unix::EnvironmentManager::get("PATH"));
 
     if (std::filesystem::path(filename).is_absolute()) {
@@ -54,7 +59,7 @@ public:
 
       using directory_iterator = std::filesystem::recursive_directory_iterator;
 
-      for (auto file : directory_iterator(folder)) {
+      for (auto file : directory_iterator(folder.std_string())) {
 
         if (file.path().filename() == filename) {
           return file.path().string();
@@ -65,7 +70,7 @@ public:
     return "";
   }
 
-  inline static const std::string which(const std::string &str) {
+  inline static const Core::Containers::String which(const Core::Containers::String &str) {
     return which(str.c_str());
   }
 };

@@ -10,6 +10,8 @@
 #include <type_traits>
 #include <variant>
 
+using namespace Core::Containers;
+
 namespace Core::Containers {
 class Variant;
 class Variant
@@ -28,8 +30,6 @@ public:
 } // namespace Core::Containers
 
 namespace Utils {
-
-using namespace Core::Containers;
 
 template <>
 inline std::ostream &print<Variant>(std::ostream &os, Variant values) {

@@ -22,7 +22,7 @@ class LoggerManager {
   LoggerManager operator=(const LoggerManager &&) = delete;
 
 public:
-  enum Level { Info = 0, Warn = 1, Debug = 2, Max };
+  enum class Level { Info = 0, Warn = 1, Debug = 2, Max };
 
   template <typename... ArgsTypes>
   static void log(const char *prefix,

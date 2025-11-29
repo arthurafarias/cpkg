@@ -1,9 +1,10 @@
-#include "Core/Exceptions/RuntimeException.hpp"
-#include "Core/Logging/LoggerManager.hpp"
-#include "Models/BasicToolchain.hpp"
-#include <Controllers/Project.hpp>
-#include <Controllers/Toolchain.hpp>
-#include <Models/BasicTarget.hpp>
+#include "Models/ToolchainDescriptor.hpp"
+#include <Controllers/ProjectManager.hpp>
+#include <Controllers/ToolchainManager.hpp>
+#include <Core/Containers/Collection.hpp>
+#include <Core/Containers/String.hpp>
+#include <Core/Exceptions/RuntimeException.hpp>
+#include <Core/Logging/LoggerManager.hpp>
 #include <Utils/Unix/EnvironmentManager.hpp>
 
 #include <algorithm>
@@ -27,7 +28,8 @@ Usage: cpkg-build [options]
 
 int main(int argc, char *argv[]) {
 
-  std::deque<std::string> args(argv, argv + argc);
+  Core::Containers::Collection<Core::Containers::String> args(argv,
+                                                              argv + argc);
 
   auto build_path = std::filesystem::current_path();
 
@@ -50,18 +52,20 @@ int main(int argc, char *argv[]) {
   if (std::find_if(args.begin(), args.end(), [](auto str) {
         return str == "--generate";
       }) != args.end()) {
-    return Controllers::Project::build_manifest(build_path, extra_modules_path);
+    return Controllers::ProjectManager::build_manifest(build_path.string(),
+                                                       extra_modules_path);
   }
 
   if (std::find_if(args.begin(), args.end(),
                    [](auto str) { return str == "--clean"; }) != args.end()) {
 
-    if (Controllers::Project::build_manifest(build_path, extra_modules_path) !=
-        0) {
+    if (Controllers::ProjectManager::build_manifest(build_path.string(),
+                                                    extra_modules_path) != 0) {
       return -1;
     }
 
-    if (Controllers::Project::clean(build_path, extra_modules_path) != 0) {
+    if (Controllers::ProjectManager::clean(build_path.string(),
+                                           extra_modules_path) != 0) {
       return -1;
     }
 
@@ -70,24 +74,18 @@ int main(int argc, char *argv[]) {
 
   if (args[1] == "--build") {
 
-    if (Controllers::Project::build_manifest(build_path, extra_modules_path) !=
-        0) {
+    if (Controllers::ProjectManager::build_manifest(build_path.string(),
+                                                    extra_modules_path) != 0) {
       return -1;
     }
 
-    auto project_manifest = Controllers::Project::load_from_manifest(
-        std::filesystem::path(build_path).append("project-manifest.so"));
+    auto project_manifest = Controllers::ProjectManager::load_from_manifest(
+        std::filesystem::path(build_path.string())
+            .append("project-manifest.so")
+            .string());
 
-    for (auto target : project_manifest->targets) {
+    for (auto toolchain : project_manifest.toolchains) {
       try {
-
-        if (!std::holds_alternative<Models::ToolchainDescriptor>(target)) {
-          // ignore other than toolchains
-          continue;
-        }
-
-        auto toolchain = std::make_shared<Controllers::ToolchainManager>(
-            std::get<Models::ToolchainDescriptor>(target));
 
         if (Controllers::ToolchainManager::valid(toolchain)) {
           Controllers::ToolchainManager::add(toolchain);
@@ -99,39 +97,22 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    for (auto target_variant : project_manifest->targets) {
+    for (auto target : project_manifest.targets) {
       try {
-
-        if (!std::holds_alternative<Models::BasicTarget>(target_variant)) {
-          // ignore other than toolchains
-          continue;
-        }
-
-        auto target = std::get<Models::BasicTarget>(target_variant);
 
         auto toolchain = Controllers::ToolchainManager::autoselect(target);
 
-        if (target.toolchain.as<String>() != "") {
-          Controllers::ToolchainManager::by_name(
-              std::get<String>(target.toolchain));
+        if (target.toolchain != "") {
+          Controllers::ToolchainManager::by_name(target.toolchain);
           throw Core::Exceptions::RuntimeException(
-              "Failed to find toolchain {} for project {}",
-              std::get<String>(target.toolchain),
-              std::get<String>(target.name));
+              "Failed to find toolchain {} for project {}", target.toolchain,
+              target.name);
         }
 
-        if (toolchain == nullptr) {
-          throw Core::Exceptions::RuntimeException(
-              "Couldn't select a valid toolchain for project {} with language "
-              "{}",
-              target.name.as<String>(), target.language.as<String>());
-        }
-
-        if (toolchain->build(target) != 0) {
+        if (toolchain.build(target) != 0) {
           throw Core::Exceptions::RuntimeException(
               "Couldn't build project {} with language {} and toolchain {}",
-              target.name.as<String>(), target.language.as<String>(),
-              toolchain->name.as<String>());
+              target.name, target.language, toolchain.name);
         }
 
       } catch (std::exception &ex) {
@@ -139,21 +120,20 @@ int main(int argc, char *argv[]) {
                                             ex.what());
       }
     }
-
-    // return Controllers::Toolchain::autoselect(project_manifest)
-    //     ->build(project_manifest);
   }
 
   if (args[1] == "--install") {
-    if (Controllers::Project::build_manifest(build_path, extra_modules_path) !=
-        0) {
+    if (Controllers::ProjectManager::build_manifest(build_path.string(),
+                                                    extra_modules_path) != 0) {
       return -1;
     }
 
-    auto project_manifest = Controllers::Project::load_from_manifest(
-        std::filesystem::path(build_path).append("project-manifest.so"));
+    auto project_manifest = Controllers::ProjectManager::load_from_manifest(
+        std::filesystem::path(build_path.string())
+            .append("project-manifest.so")
+            .string());
 
-    Controllers::ToolchainManager::current()->install(project_manifest);
+    Controllers::ToolchainManager::current().install(project_manifest);
 
     return 0;
   }
