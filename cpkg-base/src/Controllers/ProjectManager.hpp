@@ -2,9 +2,9 @@
 
 #include "Core/Containers/Collection.hpp"
 #include "Core/Exceptions/RuntimeException.hpp"
-#include "Models/BasicProjectDescriptor.hpp"
 #include "Models/ProjectDescriptor.hpp"
-#include "Models/TargetDescriptor.hpp"
+#include "Models/Project.hpp"
+#include "Models/Target.hpp"
 #include <Controllers/ToolchainManager.hpp>
 #include <Core/Containers/String.hpp>
 #include <dlfcn.h>
@@ -30,7 +30,11 @@
 
 namespace Controllers {
 
-struct ProjectManager {
+class ProjectManager final {
+
+  StaticClass(ProjectManager)
+
+  public:
 
   static inline int
   build_manifest(const Core::Containers::String &project_path,
@@ -48,10 +52,10 @@ struct ProjectManager {
     return 0;
   }
 
-  static inline Models::BasicProjectDescriptor
+  static inline Models::ProjectDescriptor
   load_from_manifest(const Core::Containers::String &manifest_path) {
 
-    typedef Models::ProjectDescriptor *(*getter_type)();
+    typedef Models::Project *(*getter_type)();
 
     void *handle = dlopen("./project-manifest.so", RTLD_NOW | RTLD_DEEPBIND);
 
@@ -102,12 +106,12 @@ struct ProjectManager {
     return 0;
   }
 
-  Core::Containers::Collection<Models::BasicProjectDescriptor> projects;
+  Core::Containers::Collection<Models::ProjectDescriptor> projects;
 
 private:
 
-  static inline Models::TargetDescriptor ManifestPackage =
-      Models::TargetDescriptor()
+  static inline Models::Target ManifestPackage =
+      Models::Target()
           .name_set("project-manifest")
           .type_set("shared-library")
           .include_directories_append(
@@ -118,11 +122,11 @@ private:
           .create();
 
   static inline const std::string BasicProjectLoaderSource = R"(
-    #include <Models/BasicProjectDescriptor.hpp>
+    #include <Models/ProjectDescriptor.hpp>
     using namespace Models;
-    extern BasicProjectDescriptor project;
+    extern ProjectDescriptor project;
     // should be a weak reference that can be overriten by a custom get_project // more versatile but unsafe.
-    extern "C" const BasicProjectDescriptor* get_project()  { return &project; }
+    extern "C" const ProjectDescriptor* get_project()  { return &project; }
   )";
 
   static int __generate_loader(std::string base_path) {

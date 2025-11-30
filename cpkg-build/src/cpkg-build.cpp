@@ -1,4 +1,4 @@
-#include "Models/ToolchainDescriptor.hpp"
+#include "Models/Toolchain.hpp"
 #include <Controllers/ProjectManager.hpp>
 #include <Controllers/ToolchainManager.hpp>
 #include <Core/Containers/Collection.hpp>

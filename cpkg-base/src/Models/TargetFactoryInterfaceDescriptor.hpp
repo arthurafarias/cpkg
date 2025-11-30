@@ -1,15 +1,14 @@
 #pragma once
 
-#include "Models/BasicTargetDescriptor.hpp"
-#include "Models/PackageDescriptor.hpp"
+#include "Models/TargetDescriptor.hpp"
 #include <Core/Containers/String.hpp>
 using namespace Core::Containers;
 namespace Models {
 
 template <typename DerivedType>
-class TargetDescriptorInterface : public BasicTargetDescriptor {
+class TargetDescriptorInterface : public TargetDescriptor {
 public:
-  using BasicTargetDescriptor::BasicTargetDescriptor;
+  using TargetDescriptor::TargetDescriptor;
   constexpr TargetDescriptorInterface<DerivedType> &
   name_set(const Core::Containers::String &name) {
     this->name = name;

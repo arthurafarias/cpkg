@@ -1,21 +1,13 @@
 #pragma once
 
-#include <Models/BasicProjectDescriptor.hpp>
-#include <Models/BasicProjectDescriptorFactoryInterface.hpp>
+#include <Models/ToolchainDescriptor.hpp>
+#include <Models/TargetDescriptor.hpp>
+
+#include <deque>
 
 namespace Models {
-class ProjectDescriptor : public BasicProjectDescriptor {
-public:
-  constexpr auto &add(const BasicTargetDescriptor &target) {
-    targets.push_back(target);
-    return *this;
-  }
-
-  constexpr auto &add(const BasicToolchainDescriptor &toolchain) {
-    toolchains.push_back(toolchain);
-    return *this;
-  }
-
-  constexpr auto &create() { return *this; }
+struct ProjectDescriptor {
+  std::deque<ToolchainDescriptor> toolchains;
+  std::deque<TargetDescriptor> targets;
 };
 } // namespace Models

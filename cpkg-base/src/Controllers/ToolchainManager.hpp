@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Core/Logging/LoggerManager.hpp"
-#include "Models/BasicTargetDescriptor.hpp"
-#include "Models/BasicToolchainDescriptor.hpp"
+#include "Models/TargetDescriptor.hpp"
+#include "Models/ToolchainDescriptor.hpp"
 
 #include "Core/Exceptions/RuntimeException.hpp"
-#include "Models/ToolchainDescriptor.hpp"
+#include "Models/Toolchain.hpp"
 #include "Utils/Unix/EnvironmentManager.hpp"
 
 #include <dlfcn.h>
@@ -14,9 +14,10 @@
 using namespace Models;
 
 namespace Controllers {
-class ToolchainManager {
+class ToolchainManager final {
+  StaticClass(ToolchainManager)
 public:
-  static inline bool valid(const BasicToolchainDescriptor &toolchain) {
+  static inline bool valid(const ToolchainDescriptor &toolchain) {
 
     if (toolchain.name.empty()) {
       return false;
@@ -47,7 +48,7 @@ public:
     return true;
   }
 
-  static inline constexpr const BasicToolchainDescriptor
+  static inline constexpr const ToolchainDescriptor
   by_name(const String &name) {
 
     auto result = std::find_if(
@@ -63,10 +64,10 @@ public:
   };
 
   static inline constexpr const Toolchain
-  autoselect(const BasicTargetDescriptor &target) {
+  autoselect(const TargetDescriptor &target) {
     auto result =
         std::find_if(toolchains.begin(), toolchains.end(),
-                     [&target](const BasicToolchainDescriptor &toolchain) {
+                     [&target](const ToolchainDescriptor &toolchain) {
                        return target.language == toolchain.language;
                      });
 
@@ -80,7 +81,7 @@ public:
   };
 
   static inline constexpr const void
-  add(const BasicToolchainDescriptor &toolchain) {
+  add(const ToolchainDescriptor &toolchain) {
     toolchains.push_back(toolchain);
   }
 
@@ -155,8 +156,8 @@ public:
   }
 
 private:
-  static inline Collection<BasicToolchainDescriptor> toolchains;
-  static inline Collection<BasicToolchainDescriptor>::iterator
+  static inline Collection<ToolchainDescriptor> toolchains;
+  static inline Collection<ToolchainDescriptor>::iterator
       current_toolchain;
 };
 } // namespace Controllers

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Models/BasicProjectDescriptor.hpp"
+#include "Models/ProjectDescriptor.hpp"
 #include "Models/ToolchainArchiveLinkInterface.hpp"
 #include "Models/ToolchainExecutableLinkInterface.hpp"
 #include "Models/ToolchainSharedObjectLinkInterface.hpp"
@@ -12,7 +12,7 @@ struct ToolchainBuildInterface : ToolchainObjectBuildInterface,
                                  ToolchainExecutableLinkInterface,
                                  ToolchainSharedObjectLinkInterface,
                                  ToolchainArchiveLinkInterface {
-  virtual int build(const BasicProjectDescriptor &project) = 0;
-  virtual int build(const BasicTargetDescriptor &target) = 0;
+  virtual int build(const ProjectDescriptor &project) = 0;
+  virtual int build(const TargetDescriptor &target) = 0;
 };
 } // namespace Models

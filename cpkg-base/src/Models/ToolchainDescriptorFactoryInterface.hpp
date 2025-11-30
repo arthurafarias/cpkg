@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Models/BasicProjectDescriptor.hpp>
-#include <Models/BasicToolchainDescriptor.hpp>
+#include <Models/ProjectDescriptor.hpp>
+#include <Models/ToolchainDescriptor.hpp>
 
 #include <Core/Containers/Collection.hpp>
 #include <Core/Containers/String.hpp>
@@ -11,13 +11,13 @@ using namespace Core::Containers;
 
 namespace Models {
 template <typename DerivedType>
-class ToolchainDescriptorFactoryInterface : public BasicToolchainDescriptor {
+class ToolchainDescriptorFactoryInterface : public ToolchainDescriptor {
 public:
-  using BasicToolchainDescriptor::BasicToolchainDescriptor;
+  using ToolchainDescriptor::ToolchainDescriptor;
 
   template <typename... ArgsTypes>
   ToolchainDescriptorFactoryInterface(ArgsTypes &&...args)
-      : BasicToolchainDescriptor(std::forward<ArgsTypes>(args)...) {}
+      : ToolchainDescriptor(std::forward<ArgsTypes>(args)...) {}
 
   ToolchainDescriptorFactoryInterface<DerivedType> &
   name_set(const Core::Containers::String &value) {

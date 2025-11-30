@@ -70,3 +70,48 @@ g++ -fPIC -shared  -I/usr/share/cpkg-build/private-headers/ -Icpkg-build/src -Ic
 g++   -o src/main.cpp.o -c src/main.cpp
 g++   -o example-executable src/main.cpp.o
 ```
+
+# News
+
+## Toolchain Support: You can define your own toolchain so you can cross compile to any target
+
+```c++
+#include <Models/ToolchainDescriptor.hpp>
+
+using namespace Models;
+
+auto toolchain = Toolchain()
+                     .name_set("g++")
+                     .version_set("generic")
+                     .include_directory_prefix_set("-I")
+                     .link_directory_prefix_set("-L")
+                     .link_library_prefix_set("-l")
+                     .compiler_executable_set("/usr/bin/g++")
+                     .linker_executable_set("/usr/bin/g++")
+                     .language_set("c++")
+                     .compiler_options_set({"-pthread"})
+                     .create();
+
+extern "C" Toolchain *get_toolchain() { return &toolchain; }
+```
+
+## PkgConfig Support
+
+Now, pkg-config dependencies are automatically solved in dependencies field from package
+
+```c++
+auto example = Models::TargetDescriptor()
+                   .name_set("example-executable")
+                   .version_set("1.0.0")
+                   .type_set("executable")
+                   .sources_append({"src/main.cpp", "src/source0.cpp",
+                                    "src/source1.cpp", "src/source2.cpp"})
+                   .sources_append({"src/source3.cpp"})
+                   .options_append({"-fPIE", "-fstack-protector-all"})
+                   .link_libraries_append({"m"})
+                   .include_directories_append({})
+                   .dependencies_append("gstreamer-1.0") // here you define PkgConfig dependencies
+                   .create();
+
+auto project = Models::ProjectDescriptor().add(example).create();
+```

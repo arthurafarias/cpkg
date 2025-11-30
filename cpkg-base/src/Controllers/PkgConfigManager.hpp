@@ -1,19 +1,22 @@
 #pragma once
 
-#include "Models/BasicTargetDescriptor.hpp"
-#include "Models/BasicToolchainDescriptor.hpp"
+#include "Models/ToolchainDescriptor.hpp"
 #include "Utils/Unix/ShellManager.hpp"
 #include <Core/Containers/Collection.hpp>
 #include <Core/Containers/String.hpp>
 
 #include <Models/PackageDescriptor.hpp>
+#include <Utils/Macros/StaticClass.hpp>
 
 using namespace Core::Containers;
 using namespace Models;
 
 namespace Controllers {
 
-class PackageConfigManager {
+class PackageConfigManager final {
+
+  StaticClass(PackageConfigManager)
+
 public:
   static inline PackageDescriptor find_package(const String &name) {
 
@@ -49,7 +52,7 @@ public:
 
   static inline String
   emit_configuration(const PackageDescriptor &package,
-                     const BasicToolchainDescriptor &toolchain) {
+                     const ToolchainDescriptor &toolchain) {
     String configuration = BasePackageConfiguration;
 
     auto prefix_needle = String("{{prefix}}");

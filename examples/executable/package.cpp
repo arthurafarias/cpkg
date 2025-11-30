@@ -1,8 +1,7 @@
-#include "Controllers/PkgConfigManager.hpp"
-#include "Models/TargetDescriptor.hpp"
-#include <Models/ProjectDescriptor.hpp>
+#include <Models/Target.hpp>
+#include <Models/Project.hpp>
 
-auto example = Models::TargetDescriptor()
+auto example = Models::Target()
                    .name_set("example-executable")
                    .version_set("1.0.0")
                    .type_set("executable")
@@ -15,4 +14,4 @@ auto example = Models::TargetDescriptor()
                    .dependencies_append("gstreamer-1.0")
                    .create();
 
-auto project = Models::ProjectDescriptor().add(example).create();
+auto project = Models::Project().add(example).create();

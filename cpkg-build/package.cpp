@@ -1,4 +1,4 @@
-#include <Models/TargetDescriptor.hpp>
+#include <Models/Target.hpp>
 
 auto cpkg_build_target = Models::TargetDescriptor()
     .name_set("cpkg-build")
