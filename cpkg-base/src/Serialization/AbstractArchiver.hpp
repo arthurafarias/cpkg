@@ -1,39 +1,41 @@
 #pragma once
 
+#include "Core/Containers/Collection.hpp"
 #include <Serialization/ValueDescriptor.hpp>
 
 #include <Core/Containers/String.hpp>
+#include <initializer_list>
 
 using namespace Core::Containers;
 
 namespace Serialization {
-
-enum class ElementDescriptor { ObjectStart, ObjectEnd, ArrayStart, ArrayEnd };
 
 class AbstractArchiver {
 protected:
   explicit AbstractArchiver() {}
 
 public:
-  template <typename ArgumentType> static ElementDescriptor object_starter() {
-    return ElementDescriptor::ObjectStart;
+
+  static inline MultipartElementTag make_object_start(std::string name) {
+    return {name, MultipartElementType::Object, true};
+  }
+
+  static inline MultipartElementTag make_object_end(std::string name) {
+    return {name, MultipartElementType::Object, false};
+  }
+
+  static inline MultipartElementTag make_array_start(std::string name) {
+    return {name, MultipartElementType::Array, true};
+  }
+
+  static inline MultipartElementTag make_array_end(std::string name) {
+    return {name, MultipartElementType::Array, false};
   }
 
   template <typename ArgumentType>
-  static ElementDescriptor object_terminator() {
-    return ElementDescriptor::ObjectEnd;
-  }
-
-  template <typename ArgumentType>
-  static ValueDescriptor<ArgumentType>
-  object_terminator(std::string name, const ArgumentType &arg) {
-    return ValueDescriptor<ArgumentType>(name, arg);
-  }
-
-  template <typename ArgumentType>
-  static ValueDescriptor<ArgumentType>
+  static inline KeyValueTag<ArgumentType>
   make_named_value_property(std::string name, const ArgumentType &arg) {
-    return ValueDescriptor<ArgumentType>(name, arg);
+    return KeyValueTag<ArgumentType>(name, arg);
   }
 
   virtual String to_string() = 0;

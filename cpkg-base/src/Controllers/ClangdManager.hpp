@@ -20,6 +20,24 @@ struct CompileCommandDescriptor {
   String command;
   String file;
   String output;
+
+  template <typename Archiver> Archiver &serialize(Archiver &ar) const {
+
+    ar % Serialization::AbstractArchiver::make_object_start(
+             "CompileCommandDescriptor");
+    ar % Serialization::AbstractArchiver::make_named_value_property("directory",
+                                                                    directory);
+    ar % Serialization::AbstractArchiver::make_named_value_property("command",
+                                                                    command);
+    ar % Serialization::AbstractArchiver::make_named_value_property("file",
+                                                                    file);
+    ar % Serialization::AbstractArchiver::make_named_value_property("output",
+                                                                    output);
+    ar % Serialization::AbstractArchiver::make_object_end(
+             "CompileCommandDescriptor");
+
+    return ar;
+  }
 };
 
 class ClangdManager final {
@@ -41,12 +59,14 @@ StaticClass(ClangdManager)
 template <typename Archiver>
 inline Archiver &operator%(Archiver &ar,
                            const CompileCommandDescriptor &descriptor) {
-  ar % Serialization::ElementDescriptor::ObjectStart;
+
+  ar % Archiver::make_object_start("CompilerCommandDescriptor");
   ar % Archiver::make_named_value_property("directory", descriptor.directory);
   ar % Archiver::make_named_value_property("command", descriptor.command);
   ar % Archiver::make_named_value_property("file", descriptor.file);
   ar % Archiver::make_named_value_property("output", descriptor.output);
-  ar % Serialization::ElementDescriptor::ObjectEnd;
+  ar % Archiver::make_object_end("CompilerCommandDescriptor");
+
   return ar;
 }
 } // namespace Controllers

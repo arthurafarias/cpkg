@@ -1,141 +1,182 @@
 #pragma once
 
-#include <deque>
+#include "Core/Exceptions/RuntimeException.hpp"
+#include "Serialization/AbstractArchiver.hpp"
+#include "Serialization/ValueDescriptor.hpp"
 #include <fstream>
 #include <iomanip>
+#include <optional>
 #include <ostream>
-#include <string>
 #include <syncstream>
-
-#include <Serialization/AbstractArchiver.hpp>
 
 namespace Serialization {
 
 class JsonOutputArchiver : public AbstractArchiver {
 public:
-  JsonOutputArchiver(const String &path) : _stream(path) {}
+  explicit JsonOutputArchiver(const String &path) : _stream(path) {}
 
   std::ostream &stream() { return _stream; }
   std::osyncstream syncstream() { return std::osyncstream(_stream); }
 
   virtual String to_string() override { return ""; }
 
+  void object_start(MultipartElementTag tag) {
+    syncstream() << "{";
+    multipart_element_stack.push_front(tag);
+  }
+
+  void object_end(MultipartElementTag tag) {
+    validate_tag(tag);
+    syncstream() << "}";
+    multipart_element_stack.pop_front();
+  }
+
+  void array_start(MultipartElementTag tag) {
+    syncstream() << "[";
+    multipart_element_stack.push_front(tag);
+  }
+
+  void array_end(MultipartElementTag tag) {
+    validate_tag(tag);
+    syncstream() << "]";
+    multipart_element_stack.pop_front();
+  }
+
+  template <typename TypeName>
+  void key_value(const KeyValueTag<TypeName> &tag) {
+    if (multipart_element_stack.empty()) {
+      throw Core::Exceptions::RuntimeException(
+          "Can't place a key-value node outside an object!");
+    }
+
+    try_print_comma();
+    syncstream() << std::quoted(tag.name) << ":";
+    (*this) % ValueTag{tag.value};
+  }
+
+  void multipart(const MultipartElementTag &tag) {
+    if (tag.start) {
+      multipart_element_stack.push_front(tag);
+    } else {
+      if (tag.name != multipart_element_stack.front().name) {
+        throw Core::Exceptions::RuntimeException(
+            "Closing element with different name.");
+      }
+      multipart_element_stack.pop_front();
+    }
+  }
+
+  template <typename TypeName> void value(const ValueTag<TypeName> &tag) {
+    static int unique_id = 0;
+    unique_id++;
+
+    object_start({"object-" + std::to_string(unique_id),
+                  MultipartElementType::Object, true});
+    tag.value.serialize(*this);
+    object_end({"object-" + std::to_string(unique_id),
+                MultipartElementType::Object, false});
+  }
+
+  void try_print_comma() {
+    if (collection_within() && collection_within_first_get()) {
+      collection_within_first_set(false);
+    } else {
+      syncstream() << ",";
+    }
+  }
+
+  bool collection_within() const { return !multipart_element_stack.empty(); }
+
+  bool collection_within_first_get() const {
+    return !multipart_element_stack.empty() &&
+           multipart_element_stack.front().start;
+  }
+
+  void collection_within_first_set(bool value) {
+    if (!multipart_element_stack.empty()) {
+      multipart_element_stack.front().start = value;
+    }
+  }
+
 private:
+  // Consolidate validation logic into a helper function
+  void validate_tag(const MultipartElementTag &tag) const {
+    if (multipart_element_stack.empty())
+      return;
+
+    auto &current_tag = multipart_element_stack.front();
+    if (current_tag.type != tag.type || current_tag.name != tag.name) {
+      throw Core::Exceptions::RuntimeException(
+          "Failed to serialize element at tag {}", tag.name);
+    }
+  }
+
+private:
+  Collection<MultipartElementTag> multipart_element_stack;
   std::ofstream _stream;
 };
 
-inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar, const int &value) {
-  ar.syncstream() << value;
+template <>
+inline void JsonOutputArchiver::value<int>(const ValueTag<int> &tag) {
+  syncstream() << tag.value;
+}
+
+template <>
+inline void JsonOutputArchiver::value<double>(const ValueTag<double> &tag) {
+  syncstream() << tag.value;
+}
+
+template <>
+inline void JsonOutputArchiver::value<String>(const ValueTag<String> &tag) {
+  syncstream() << std::quoted(tag.value);
+}
+
+template <>
+inline void JsonOutputArchiver::value<bool>(const ValueTag<bool> &tag) {
+  syncstream() << tag.value;
+}
+
+template <>
+inline void
+JsonOutputArchiver::value<std::nullptr_t>(const ValueTag<std::nullptr_t> &tag) {
+}
+
+template <typename ValueType>
+inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar,
+                                     const ValueTag<ValueType> &value) {
+  ar.value(value);
+  return ar;
+}
+
+template <typename ValueType>
+inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar,
+                                     const KeyValueTag<ValueType> &value) {
+  ar.key_value(value);
   return ar;
 }
 
 inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar,
-                                     const ValueDescriptor<int> &value) {
-  ar.syncstream() << std::quoted(value.name) << ":" << value.value;
+                                     const MultipartElementTag &descriptor) {
+  ar.multipart(descriptor);
   return ar;
 }
 
-inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar,
-                                     const double &value) {
-  ar.syncstream() << value;
-  return ar;
-}
-
-inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar,
-                                     const ValueDescriptor<double> &value) {
-  ar.syncstream() << std::quoted(value.name) << ":" << value.value;
-  return ar;
-}
-
-inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar,
-                                     const bool &value) {
-  ar.syncstream() << ((value) ? "true" : "false");
-  return ar;
-}
-
-inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar,
-                                     const ValueDescriptor<bool> &value) {
-  ar.syncstream() << std::quoted(value.name) << ":"
-                  << ((value.value) ? "true" : "false");
-  return ar;
-}
-
-inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar,
-                                     const String &value) {
-  ar.syncstream() << std::quoted(value);
-  return ar;
-}
-
-inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar,
-                                     const ValueDescriptor<String> &value) {
-  ar.syncstream() << std::quoted(value.name) << ":" << std::quoted(value.value);
-  return ar;
-}
-
-template <typename ContainedType>
-inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar,
-                                     const Collection<ContainedType> &value) {
-
-  ar.syncstream() << "[";
-
-  if (value.size() > 0) {
-
-    ar % value[0];
-
-    for (auto i = 1; i < value.size(); i++) {
-      ar.syncstream() << ",";
-      ar % value[i];
-    }
-  }
-
-  ar.syncstream() << "]";
-
-  return ar;
-}
-
-template <typename ContainedType>
+template <typename ElementType>
 inline JsonOutputArchiver &
-operator%(JsonOutputArchiver &ar,
-          const ValueDescriptor<Collection<ContainedType>> &descriptor) {
+operator%(JsonOutputArchiver &ar, const Collection<ElementType> &collection) {
+  static int unique_id = 0;
+  unique_id++;
 
-  auto [name, value] = descriptor;
+  ar.array_start(MultipartElementTag("array-" + std::to_string(unique_id),
+                                     MultipartElementType::Array, true));
 
-  ar.syncstream() << std::quoted(name) << ":";
-
-  ar.syncstream() << "[";
-
-  if (value.size() > 0) {
-
-    ar.syncstream() % value[0];
-
-    for (auto i = 1; i < value.size(); i++) {
-      ar.syncstream() << ",";
-      ar % value[i];
-    }
+  for (const auto &el : collection) {
+    ar.try_print_comma();
+    ar.value(ValueTag<ElementType>{el});
   }
 
-  ar.syncstream() << "]";
-
-  return ar;
-}
-
-inline JsonOutputArchiver &operator%(JsonOutputArchiver &ar,
-                                     const ElementDescriptor &descriptor) {
-  switch (descriptor) {
-  case Serialization::ElementDescriptor::ArrayStart:
-    ar.syncstream() << "[";
-    break;
-  case Serialization::ElementDescriptor::ArrayEnd:
-    ar.syncstream() << "]";
-    break;
-  case Serialization::ElementDescriptor::ObjectStart:
-    ar.syncstream() << "{";
-    break;
-  case Serialization::ElementDescriptor::ObjectEnd:
-    ar.syncstream() << "}";
-    break;
-  }
-
+  ar.array_end(MultipartElementTag("array-" + std::to_string(unique_id),
+                                   MultipartElementType::Array, false));
   return ar;
 }
 
