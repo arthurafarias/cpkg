@@ -1,4 +1,5 @@
 #include "Models/Toolchain.hpp"
+#include "Serialization/JsonOutputArchiver.hpp"
 #include <Controllers/ProjectManager.hpp>
 #include <Controllers/ToolchainManager.hpp>
 #include <Core/Containers/Collection.hpp>
@@ -10,6 +11,7 @@
 #include <algorithm>
 #include <exception>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -106,7 +108,13 @@ int main(int argc, char *argv[]) {
           toolchain = Controllers::ToolchainManager::by_name(target.toolchain);
         }
 
-        if (toolchain.build(target) != 0) {
+        auto [result, commands] = toolchain.build(target);
+
+        auto stream = std::ofstream("compile_commands.json");
+        Serialization::JsonOutputArchiver output(stream);
+        output % commands;
+
+        if (result != 0) {
           throw Core::Exceptions::RuntimeException(
               "Couldn't build project {} with language {} and toolchain {}",
               target.name, target.language, toolchain.name);

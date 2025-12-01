@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Core/Containers/Collection.hpp"
 #include <string>
 
 namespace Serialization {

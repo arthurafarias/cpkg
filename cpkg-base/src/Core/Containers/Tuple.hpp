@@ -5,7 +5,7 @@
 #include <deque>
 
 namespace Core::Containers {
-template <typename... ArgsTypes> class Tuple : std::tuple<ArgsTypes...> {
+template <typename... ArgsTypes> class Tuple : public std::tuple<ArgsTypes...> {
 public:
   using std::tuple<ArgsTypes...>::tuple;
 };

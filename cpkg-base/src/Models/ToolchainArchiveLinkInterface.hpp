@@ -5,8 +5,6 @@
 
 namespace Models {
 struct ToolchainArchiveLinkInterface : ToolchainBasicCommandInterface {
-  virtual String archive_link(const TargetDescriptor &target) = 0;
-  virtual ToolchainBasicCommandInterface::promise_type
-  archive_link_async(const TargetDescriptor &target) = 0;
+  virtual BuildOutputResult archive_link(const TargetDescriptor &target, bool dry) = 0;
 };
 } // namespace Models

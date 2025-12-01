@@ -45,7 +45,9 @@ class ProjectManager final {
       return -1;
     }
 
-    if (Controllers::ToolchainManager::current().build(ManifestPackage) != 0) {
+    auto [result, commands] = Controllers::ToolchainManager::current().build(ManifestPackage);
+
+    if (result != 0) {
       return -1;
     }
 

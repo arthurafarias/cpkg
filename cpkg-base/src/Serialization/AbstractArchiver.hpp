@@ -1,10 +1,7 @@
 #pragma once
 
-#include "Core/Containers/Collection.hpp"
 #include <Serialization/ValueDescriptor.hpp>
-
 #include <Core/Containers/String.hpp>
-#include <initializer_list>
 
 using namespace Core::Containers;
 

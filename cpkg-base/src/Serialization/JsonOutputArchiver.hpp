@@ -5,7 +5,6 @@
 #include "Serialization/ValueDescriptor.hpp"
 #include <fstream>
 #include <iomanip>
-#include <optional>
 #include <ostream>
 #include <syncstream>
 
@@ -13,32 +12,31 @@ namespace Serialization {
 
 class JsonOutputArchiver : public AbstractArchiver {
 public:
-  explicit JsonOutputArchiver(const String &path) : _stream(path) {}
+  explicit JsonOutputArchiver(std::ostream &ostream) : stream_property(ostream) {}
 
-  std::ostream &stream() { return _stream; }
-  std::osyncstream syncstream() { return std::osyncstream(_stream); }
+  std::osyncstream stream() { return std::osyncstream(stream_property); }
 
   virtual String to_string() override { return ""; }
 
   void object_start(MultipartElementTag tag) {
-    syncstream() << "{";
+    stream() << "{";
     multipart_element_stack.push_front(tag);
   }
 
   void object_end(MultipartElementTag tag) {
     validate_tag(tag);
-    syncstream() << "}";
+    stream() << "}";
     multipart_element_stack.pop_front();
   }
 
   void array_start(MultipartElementTag tag) {
-    syncstream() << "[";
+    stream() << "[";
     multipart_element_stack.push_front(tag);
   }
 
   void array_end(MultipartElementTag tag) {
     validate_tag(tag);
-    syncstream() << "]";
+    stream() << "]";
     multipart_element_stack.pop_front();
   }
 
@@ -50,7 +48,7 @@ public:
     }
 
     try_print_comma();
-    syncstream() << std::quoted(tag.name) << ":";
+    stream() << std::quoted(tag.name) << ":";
     (*this) % ValueTag{tag.value};
   }
 
@@ -72,7 +70,8 @@ public:
 
     object_start({"object-" + std::to_string(unique_id),
                   MultipartElementType::Object, true});
-    tag.value.serialize(*this);
+    // tag.value.serialize(*this);
+    (*this) % tag.value;
     object_end({"object-" + std::to_string(unique_id),
                 MultipartElementType::Object, false});
   }
@@ -81,7 +80,7 @@ public:
     if (collection_within() && collection_within_first_get()) {
       collection_within_first_set(false);
     } else {
-      syncstream() << ",";
+      stream() << ",";
     }
   }
 
@@ -113,27 +112,27 @@ private:
 
 private:
   Collection<MultipartElementTag> multipart_element_stack;
-  std::ofstream _stream;
+  std::ostream& stream_property;
 };
 
 template <>
 inline void JsonOutputArchiver::value<int>(const ValueTag<int> &tag) {
-  syncstream() << tag.value;
+  stream() << tag.value;
 }
 
 template <>
 inline void JsonOutputArchiver::value<double>(const ValueTag<double> &tag) {
-  syncstream() << tag.value;
+  stream() << tag.value;
 }
 
 template <>
 inline void JsonOutputArchiver::value<String>(const ValueTag<String> &tag) {
-  syncstream() << std::quoted(tag.value);
+  stream() << std::quoted(tag.value);
 }
 
 template <>
 inline void JsonOutputArchiver::value<bool>(const ValueTag<bool> &tag) {
-  syncstream() << tag.value;
+  stream() << tag.value;
 }
 
 template <>
