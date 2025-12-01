@@ -2,8 +2,9 @@
 
 #include "Core/Containers/Collection.hpp"
 #include "Core/Exceptions/RuntimeException.hpp"
-#include "Models/ProjectDescriptor.hpp"
+#include "Models/BuildOutputResult.hpp"
 #include "Models/Project.hpp"
+#include "Models/ProjectDescriptor.hpp"
 #include "Models/Target.hpp"
 #include <Controllers/ToolchainManager.hpp>
 #include <Core/Containers/String.hpp>
@@ -23,26 +24,21 @@ namespace Controllers {
 
 class ProjectManager final {
 
-  StaticClass(ProjectManager)
+StaticClass(ProjectManager)
 
-  public:
+    public :
 
-  static inline int
-  build_manifest(const Core::Containers::String &project_path,
-                 Core::Containers::Collection<Core::Containers::String>
-                     extra_toolchain_search_paths) {
+    static inline BuildOutputResult
+    build_manifest(const Core::Containers::String &project_path,
+                   Core::Containers::Collection<Core::Containers::String>
+                       extra_toolchain_search_paths) {
 
     if (__generate_loader(project_path) != 0) {
-      return -1;
+      return BuildOutputResult(-1, Collection<CompileCommandDescriptor>());
     }
 
-    auto [result, commands] = Controllers::ToolchainManager::current(extra_toolchain_search_paths).build(ManifestPackage);
-
-    if (result != 0) {
-      return -1;
-    }
-
-    return 0;
+    return Controllers::ToolchainManager::current(extra_toolchain_search_paths)
+        .build(ManifestPackage);
   }
 
   static inline Models::ProjectDescriptor
@@ -102,18 +98,16 @@ class ProjectManager final {
   Core::Containers::Collection<Models::ProjectDescriptor> projects;
 
 private:
-
   static inline Models::Target ManifestPackage =
       Models::Target()
           .name_set("project-manifest")
           .type_set("shared-library")
-          .include_directories_append(
-              {
-                String(CPKG_BASE_INSTALL_PREFIX) + "/lib/cpkg-base/headers",
-                String(CPKG_BASE_INSTALL_PREFIX) + "/share/cpkg-base/headers",
-                String(CPKG_BASE_INSTALL_PREFIX) + "/include/cpkg-base",
-                String(CPKG_BASE_SOURCE_PREFIX) + "/src",
-              })
+          .include_directories_append({
+              String(CPKG_BASE_INSTALL_PREFIX) + "/lib/cpkg-base/headers",
+              String(CPKG_BASE_INSTALL_PREFIX) + "/share/cpkg-base/headers",
+              String(CPKG_BASE_INSTALL_PREFIX) + "/include/cpkg-base",
+              String(CPKG_BASE_SOURCE_PREFIX) + "/src",
+          })
           .options_append({"-std=c++23", "-Wall", "-Werror", "-pedantic"})
           .sources_append({"package.cpp", "package.loader.cpp"})
           .create();

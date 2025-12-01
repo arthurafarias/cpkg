@@ -119,6 +119,8 @@ private:
 
   void build(const String &directory) {
 
+    Collection<CompileCommandDescriptor> commands;
+
     auto build_path = std::filesystem::current_path();
 
     if (!directory.empty()) {
@@ -137,8 +139,12 @@ private:
     extra_module_path_add(CPKG_BUILD_INSTALL_PREFIX "/lib/cpkg/toolchains");
     extra_module_path_add(CPKG_BUILD_INSTALL_PREFIX "/share/cpkg/toolchains");
 
-    if (Controllers::ProjectManager::build_manifest(
-            build_path.string(), modules_search_paths) != 0) {
+    auto [build_manifest_result, build_manifest_comands] = Controllers::ProjectManager::build_manifest(
+            build_path.string(), modules_search_paths);
+    
+    commands.append_range(build_manifest_comands);
+    
+    if (build_manifest_result != 0) {
 
       throw Core::Exceptions::RuntimeException(
           "Failed to build manifest {} using {}",
@@ -173,13 +179,15 @@ private:
           toolchain = Controllers::ToolchainManager::by_name(target.toolchain);
         }
 
-        auto [result, commands] = toolchain.build(target);
+        auto [build_result, build_commands] = toolchain.build(target);
+
+        commands.append_range(build_commands);
 
         auto stream = std::ofstream("compile_commands.json");
         Modules::Serialization::JsonOutputArchiver output(stream);
         output % commands;
 
-        if (result != 0) {
+        if (build_result != 0) {
           throw Core::Exceptions::RuntimeException(
               "Couldn't build project {} with language {} and toolchain {}",
               target.name, target.language, toolchain.name);
