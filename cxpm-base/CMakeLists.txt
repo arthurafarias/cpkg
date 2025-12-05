@@ -14,8 +14,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC "CPKG_BASE_SOURCE_PREFIX=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
-target_compile_definitions(${PROJECT_NAME} PUBLIC "CPKG_BASE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "cxpm_BASE_SOURCE_PREFIX=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "cxpm_BASE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"")
 
 add_subdirectory(test)
 

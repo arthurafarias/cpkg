@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(cpkg-toolchain-gcc-default VERSION 0.1.0)
+project(cxpm-toolchain-gcc-default VERSION 0.1.0)
 
 include(CMakePackageConfigHelpers)
 
@@ -9,28 +9,28 @@ add_library(${PROJECT_NAME} SHARED
 ${${PROJECT_NAME}_SOURCES}
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC cpkg-base)
+target_link_libraries(${PROJECT_NAME} PUBLIC cxpm-base)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-  $<INSTALL_INTERFACE:lib/cpkg/toolchains/${PROJECT_NAME}/headers>
+  $<INSTALL_INTERFACE:lib/cxpm/toolchains/${PROJECT_NAME}/headers>
 )
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC "CPKG_BASE_SOURCE_PREFIX=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
-target_compile_definitions(${PROJECT_NAME} PUBLIC "CPKG_BASE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "cxpm_BASE_SOURCE_PREFIX=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "cxpm_BASE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"")
 
 
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}Targets
-    ARCHIVE DESTINATION lib/cpkg/toolchains/${PROJECT_NAME}
-    LIBRARY DESTINATION lib/cpkg/toolchains/${PROJECT_NAME}
-    RUNTIME DESTINATION lib/cpkg/toolchains/${PROJECT_NAME}
-    INCLUDES DESTINATION lib/cpkg/toolchains/${PROJECT_NAME}/headers
+    ARCHIVE DESTINATION lib/cxpm/toolchains/${PROJECT_NAME}
+    LIBRARY DESTINATION lib/cxpm/toolchains/${PROJECT_NAME}
+    RUNTIME DESTINATION lib/cxpm/toolchains/${PROJECT_NAME}
+    INCLUDES DESTINATION lib/cxpm/toolchains/${PROJECT_NAME}/headers
 )
 
 # Install header files
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/
-    DESTINATION lib/cpkg/toolchains/${PROJECT_NAME}/headers
+    DESTINATION lib/cxpm/toolchains/${PROJECT_NAME}/headers
     FILES_MATCHING
         PATTERN "*.h"
         PATTERN "*.hpp"

@@ -104,8 +104,8 @@ public:
   autoscan(Collection<String> extra_paths = {}) {
 
     Collection<String> search_paths = {
-        "/usr/share/cpkg/toolchains",
-        "/usr/local/share/cpkg/toolchains"};
+        "/usr/share/cxpm/toolchains",
+        "/usr/local/share/cxpm/toolchains"};
 
     search_paths.append_range(extra_paths);
 

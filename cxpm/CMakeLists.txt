@@ -12,15 +12,15 @@ ${${PROJECT_NAME}_SOURCES}
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror -Wextra -pedantic)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wno-error=unused-parameter)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC cpkg-base)
+target_link_libraries(${PROJECT_NAME} PUBLIC cxpm-base)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC "CPKG_BUILD_SOURCE_PREFIX=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
-target_compile_definitions(${PROJECT_NAME} PUBLIC "CPKG_BUILD_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "cxpm_BUILD_SOURCE_PREFIX=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "cxpm_BUILD_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"")
 
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}Targets

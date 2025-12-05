@@ -41,7 +41,7 @@ public:
     auto arguments = args();
 
     Modules::ProgramOptions::OptionsDescriptorCollection options_schema(
-        "cpkg-build", "A package manager for C++ using C++");
+        "cxpm", "A package manager for C++ using C++");
 
     auto options = Modules::ProgramOptions::Parse(arguments);
 
@@ -109,9 +109,9 @@ public:
 
   void print_usage() {
     std::osyncstream(std::cout) << R"(
-cpkg-build: A simple package manager written in C++ for C++
+cxpm: A simple package manager written in C++ for C++
 Usage:
-    cpkg-build [option] [arguments]
+    cxpm [option] [arguments]
 Options:
 
     -b|--build <directory>: Build project on directory containing package.cpp

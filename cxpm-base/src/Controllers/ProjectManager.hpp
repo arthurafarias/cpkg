@@ -20,16 +20,16 @@
 #include <fstream>
 #include <tuple>
 
-#ifndef CPKG_BASE_INSTALL_PREFIX
-#define CPKG_BASE_INSTALL_PREFIX "/usr/local"
+#ifndef cxpm_BASE_INSTALL_PREFIX
+#define cxpm_BASE_INSTALL_PREFIX "/usr/local"
 #endif
 
-#ifndef CPKG_BASE_SOURCE_PREFIX
-#define CPKG_BASE_SOURCE_PREFIX "/usr/src/cpkg/cpkg-base"
+#ifndef cxpm_BASE_SOURCE_PREFIX
+#define cxpm_BASE_SOURCE_PREFIX "/usr/src/cxpm/cxpm-base"
 #endif
 
-#ifndef CPKG_BUILD_INSTALL_PREFIX
-#define CPKG_BUILD_INSTALL_PREFIX "/usr"
+#ifndef cxpm_BUILD_INSTALL_PREFIX
+#define cxpm_BUILD_INSTALL_PREFIX "/usr"
 #endif
 
 namespace Controllers {
@@ -47,16 +47,16 @@ StaticClass(ProjectManager)
 
   static inline void initialize() {
     modules_search_paths =
-        Utils::Unix::EnvironmentManager::get("CPKG_BUILD_EXTRA_MODULES_PATH");
+        Utils::Unix::EnvironmentManager::get("cxpm_BUILD_EXTRA_MODULES_PATH");
 
-    extra_module_path_add("/usr/share/cpkg/toolchains");
-    extra_module_path_add("/usr/local/share/cpkg/toolchains");
+    extra_module_path_add("/usr/share/cxpm/toolchains");
+    extra_module_path_add("/usr/local/share/cxpm/toolchains");
 
-    extra_module_path_add("/usr/lib/cpkg/toolchains");
-    extra_module_path_add("/usr/local/lib/cpkg/toolchains");
+    extra_module_path_add("/usr/lib/cxpm/toolchains");
+    extra_module_path_add("/usr/local/lib/cxpm/toolchains");
 
-    extra_module_path_add(CPKG_BASE_INSTALL_PREFIX "/lib/cpkg/toolchains");
-    extra_module_path_add(CPKG_BASE_INSTALL_PREFIX "/share/cpkg/toolchains");
+    extra_module_path_add(cxpm_BASE_INSTALL_PREFIX "/lib/cxpm/toolchains");
+    extra_module_path_add(cxpm_BASE_INSTALL_PREFIX "/share/cxpm/toolchains");
   }
 
   using BuildProjectOutputResult =
@@ -416,10 +416,10 @@ private:
           .name_set("project-manifest")
           .type_set("shared-library")
           .include_directories_append({
-              String(CPKG_BASE_INSTALL_PREFIX) + "/lib/cpkg-base/headers",
-              String(CPKG_BASE_INSTALL_PREFIX) + "/share/cpkg-base/headers",
-              String(CPKG_BASE_INSTALL_PREFIX) + "/include/cpkg-base",
-              String(CPKG_BASE_SOURCE_PREFIX) + "/src",
+              String(cxpm_BASE_INSTALL_PREFIX) + "/lib/cxpm-base/headers",
+              String(cxpm_BASE_INSTALL_PREFIX) + "/share/cxpm-base/headers",
+              String(cxpm_BASE_INSTALL_PREFIX) + "/include/cxpm-base",
+              String(cxpm_BASE_SOURCE_PREFIX) + "/src",
           })
           .options_append({"-std=c++23", "-Wall", "-Werror", "-pedantic"})
           .sources_append({"package.cpp", "package.loader.cpp"})

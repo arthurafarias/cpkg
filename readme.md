@@ -36,7 +36,7 @@ auto project = Models::ProjectDescriptor()
                         .create();
 ```
 
-The **cpkg-build** utility is responsible for generating the supporting stubs required to build a shared library representing your project’s manifest, integrating it seamlessly into the build process.
+The **cxpm** utility is responsible for generating the supporting stubs required to build a shared library representing your project’s manifest, integrating it seamlessly into the build process.
 
 The overarching philosophy is to maintain a small, modern, and expressive system: no complex macro layers, no special DSLs. Your C++ project is described in C++, much like package.json, Package.swift, or Pkg.jl but for C++.
 
@@ -54,13 +54,13 @@ cd build && cmake ..
 sudo make install
 ```
 
-This installs the cpkg-build utility.
+This installs the cxpm utility.
 
 You can now build an example project:
 
 ```
 cd ../examples/executable
-cpkg-build --build .
+cxpm --build .
 ```
 
 # Recent Enhancements
@@ -115,7 +115,7 @@ auto project = Models::ProjectDescriptor().add(example).create();
 Projects can now be installed directly:
 
 ```c++
-cpkg-build --install . --prefix /usr/local
+cxpm --install . --prefix /usr/local
 ```
 
 cxpm follows a predictable, POSIX-aligned installation layout:
