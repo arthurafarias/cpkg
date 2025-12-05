@@ -21,17 +21,17 @@ jobs:
 
     - name: Build
       working-directory: ${{github.workspace}}
-      run: ./build.sh
+      run: /usr/bin/bash ./build.sh
 
     - name: Install
       working-directory: ${{github.workspace}}
-      run: sudo ./install.sh
+      run: sudo /usr/bin/bash ./install.sh
 
     - name: Test
       working-directory: ${{github.workspace}}
-      run: ./test.sh
+      run: /usr/bin/bash ./test.sh
 
     - name: Uninstall
       working-directory: ${{github.workspace}}
-      run: sudo ./uninstall.sh
+      run: sudo /usr/bin/bash ./uninstall.sh
 
